@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>  
+    <style>
+        html, body {
+        -webkit-user-select: none;
+        user-select: none;
+        }
+        .province{
+            stroke:'#ccc';
+            stroke-width:1px;
+        }
+        .centroid{
+            fill:#ccc;
+        }
+        .boundingbox{
+            fill:none;
+            stroke:#ccc;
+            stroke-width:1px;
+        }
+        .overlay{ 
+            fill: none; 
+            pointer-events: all; 
+        }                
+    </style>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+    var width = 500;
+    var height = 500;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+    var projection = d3.geoOrthographic().translate([width/2,height/2]);
+    var path = d3.geoPath(projection);
+    var speed = 1e-2;
+    var start = Date.now();
+    var centered = '';
+        
+    var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var geoGraticule = d3.geoGraticule();//设置地理网格生成器
+    var grid = geoGraticule();//获取地理网格数据信息
+
+    var mapLines = svg.append('path').datum(grid)//绘制地理网格
+    .attr('stroke','#ccc')
+    .attr('stroke-width','1px')
+    .attr('fill','none')
+    .attr('d',path)
+    .attr('marker-end','url(#arrow)')
+    .attr('marker-start','url(#startpoint)');
+
+    var pekingToWashington = {//从华盛顿到北京的连线数据 
+        type: "LineString", 
+        coordinates: [[ 116.4, 39.9],[-77.0, 38.9]] 
+    };
+
+    var bjData = {//目标图片信息数组
+        "name": "地 点", 
+        "location": [ 
+            { "name":" 北 京", "log":"116.3", "lat":"39.9", "img":"img/bj.jpg" },
+            { "name":" 上 海", "log":"121.4", "lat":"31.2", "img":"img/bj.jpg" }
+        ]    
+    }
+
+    d3.json('world.topojson').then((root,error) => {
+
+        var georoot = topojson.feature( root, root.objects.countries);        
+        var groups = svg.append('g');
+
+        var map = groups.selectAll('path').data(georoot.features).enter().append('path').attr('class','province').style('fill',function(d,i){
+            return colors(i);
+        }).attr('d',path).on('click',clicked);
+
+        var initRotate = projection.rotate(); 
+        var initScale = projection.scale();
+
+        var mapArrow = svg.append('path')//绘制华盛顿到北京连线
+        .attr('stroke','#333')
+        .attr('stroke-width','3px')
+        .attr('fill','none')        
+        .attr('d',path(pekingToWashington));
+
+        var location = svg.selectAll('.location').data(bjData.location).enter().append('g').attr('transform',function(d){//绘制坐标位置
+            var coor = projection([d.log,d.lat]);
+            return 'translate('+coor[0]+','+coor[1]+')';
+        });
+        location.append('circle').attr('r',5).attr('fill','#333');//以圆点表示目标坐标位置
+        location.append('image')//绘制目标图片
+        .attr('x',20)
+        .attr('y',-40)
+        .attr('width',90)
+        .attr('height',90)
+        .attr('xlink:href',function(d){
+            return d.img;
+        });
+
+        var zoom = d3.zoom().scaleExtent([1,10]).on('zoom',function(d){
+
+            projection.rotate([
+                initRotate[0] + 180 * d3.event.transform.x / width,                
+                initRotate[1] + -180 * d3.event.transform.y / height,                
+                initRotate[2]                
+            ]);
+
+            projection.scale(initScale * d3.event.transform.k);
+
+            map.attr('d',path);
+
+            mapLines.attr('d',path);//更新绘制地图网格            
+
+            mapArrow.attr('d',path(pekingToWashington));//更新绘制华盛顿到北京连线
+
+            location.attr('transform',function(d){
+                var coor = projection([d.log,d.lat]);
+                return 'translate('+coor[0]+','+coor[1]+')';
+            })
+
+        });
+
+        svg.append('rect').attr('class','overlay').attr('x',0).attr('y',0).attr('width',width).attr('height',height).call(zoom);
+
+        // d3.timer(function() {
+        //     projection.rotate([speed * (Date.now() - start),0,0]);
+        //     groups.selectAll('path')
+        //     .data(georoot.features)             
+        //     .attr('d',path);
+
+        //     mapLines.attr('d',path);//更新绘制地图网格            
+
+        //     mapArrow.attr('d',path(pekingToWashington));//更新绘制华盛顿到北京连线
+
+        //     location.attr('transform',function(d){
+        //         var coor = projection([d.log,d.lat]);
+        //         return 'translate('+coor[0]+','+coor[1]+')';
+        //     })
+
+        // },0);
+
+        function clicked(d) {
+
+            var x, y, k;
+
+            if (d && centered !== d) {
+                var centroid = path.centroid(d);
+                x = centroid[0];
+                y = centroid[1];
+                k = 4;
+                centered = d;
+            } else {
+                x = width / 2;
+                y = height / 2;
+                k = 1;
+                centered = null;
+            }
+
+            map.selectAll("path")
+                .classed("active", centered && function(d) { return d === centered; });
+
+            map.transition()
+                .duration(750)
+                .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
+                .style("stroke-width", 1.5 / k + "px");
+        }
+
+    })
+    
+</script>
+</html>

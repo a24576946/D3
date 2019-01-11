@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+    
+</body>
+<script charset="utf-8">
+    var width = 500;
+    var height = 500;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+    var data = [ [" 小 米", 60.8], [" 三 星", 58.4], [" 联 想", 47.3], [" 苹 果", 46.6], [" 华 为", 41.3], [" 酷 派", 40.1] , [" 其 他", 111.5] ];
+    var pie = d3.pie().value(function(d,i){
+        return d[1];
+    });
+
+    var pieData = pie(data);
+    var outerRadius = width / 3; 
+    var innerRadius = 0;
+    var arc = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius);    
+    var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var arcs = svg.selectAll('g').data(pieData).enter().append('g')
+    .attr('transform','translate('+(width/2)+','+(height/2)+')')
+    .call(d3.drag().on('drag',draged));
+
+    var arcsTran = arcs.transition();
+
+    arcs.append('path').attr('fill',function(d,i){
+        return color(i);
+    }).attr('d',function(d){
+        return arc(d);
+    }); 
+
+    arcs.append('text').attr('transform',function(d,i){
+        var x = arc.centroid(d)[0] * 1.4;
+        var y = arc.centroid(d)[1] * 1.4;
+        return 'translate('+x+','+y+')';
+    }).attr('text-anchor','middle').text(function(d,i){
+        var percent = Number(d.value/d3.sum(data,function(d){
+            return d[1];
+        }) * 100);
+        return percent.toFixed(1) + '%';
+    });
+
+    arcs.append('line').attr('stroke','black').attr('x1',function(d){
+        return arc.centroid(d)[0] * 2;
+    }).attr('y1',function(d){
+        return arc.centroid(d)[1] * 2;
+    }).attr('x2',function(d){
+        return arc.centroid(d)[0] * 2.2;
+    }).attr('y2',function(d){
+        return arc.centroid(d)[1] * 2.2;
+    })
+
+    arcs.append('text').attr('transform',function(d){
+        var x = arc.centroid(d)[0] * 2.5;
+        var y = arc.centroid(d)[1] * 2.5;
+        return 'translate('+x+','+y+')';
+    }).attr('text-anchor','middle').text(function(d){
+        return d.data[0];
+    });
+
+    function draged(d){//节点正在拖动时的设置节点固定位置信息
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;        
+        d3.select(this).attr('transform','translate('+d.fx+','+d.fy+')');
+    }
+
+</script>
+</html>

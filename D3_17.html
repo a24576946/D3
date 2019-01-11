@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+    <button type =" button" onclick ="mysort()" > 排 序 </button>
+     <button type =" button" onclick ="myadd()" > 增 加 数 据 </button>
+</body>
+<script charset="utf-8">
+    var test = {
+        // var arr = [0,1,2,3,4,5,6,7,8,9,10];
+        // var p = d3.select('body').selectAll('p');
+        // p.data(arr).enter().append('p').text(function(d){return d;});
+
+        // var arr = [1,2,3];
+        // var p = d3.select('body').selectAll('p');
+        // var update = p.data(arr);
+        // update.text(function(d){return d;});
+        // var exit = update.exit();
+        // exit.remove();
+
+        /*数据处理模板*/
+        // var arr = [1,2,3];
+        // var p = d3.select('body').selectAll('p');
+        // var update = p.data(arr);
+        // var enter = update.enter();
+        // var exit = update.exit();
+
+        // update.text(function(d){return d;});
+        // enter.append('p').text(function(d){return d;});
+        // exit.remove();
+
+        /*过滤器*/
+        // var arr = [0,1,2,3,4,5,6,7,8,9,10];
+        // var p = d3.select('body').selectAll('p');
+        // p.data(arr).enter().append('p').filter(function(d,i){
+        //     if(d>5){
+        //         return true;
+        //     }else{
+        //         return false;
+        //     }
+        // }).text(function(d){
+        //     return d;
+        // });
+
+        /*循环添加新数据，动态添加元素没效果*/
+        // var arr = [{ id: 1001 , name:" ZhangSan" }, { id: 1002 , name:" LiSi" }];
+        // var p = d3. select(" body"). selectAll(" p");
+        // p.data(arr).each(function(d,i){
+        //     d.age = 20;
+        // }).text(function(d,i){
+        //     return d.id + '===' + d.name + '===' + d.age;
+        // });
+        
+        // var numbers = [54,23,77,11,34]; 
+        // numbers.sort(d3.ascending); 
+        // console.log(numbers);
+        
+        /*映射*/
+        // var arr = [ { id: 1000, color:" red" }, { id: 1001, color:" green" }, { id: 1002, color:" blue" } ];
+        // var map = d3.map(arr,function(d){
+        //     return d.id;
+        // })
+        // console.log(map.has(1001));    
+        // console.log(map.get(1001));    
+        // console.log(map.set(1001,{id:1006,color:'orange'}));    
+        // console.log(map.keys());    
+        // console.log(map.values());    
+        // console.log(map.entries());
+        // map.forEach(function(key,value){
+        //     console.log(key);
+        //     console.log(value);
+        // })
+        
+        /*集合*/
+        // var arr = [" tiger"," dragon"," snake"," horse"," sheep"];
+        // var set = d3.set(arr);
+        // console.log(set.values());
+        // set.forEach(function(value){
+        //     console.log(value);
+        // })
+        
+        /*嵌套*/
+        // var arr = [ 
+        //     {id: 100, name:" 张 某 某", year: 1989, hometown:" 北 京"}, 
+        //     {id: 101, name:" 李 某 某", year: 1987, hometown:" 北 京"},
+        //     {id: 102, name:" 王 某 某", year: 1988, hometown:" 上 海"}, 
+        //     {id: 103, name:" 赵 某 某", year: 1987, hometown:" 广 州"}, 
+        //     {id: 104, name:" 孙 某 某", year: 1989, hometown:" 上 海"}
+        // ]
+        // var nest = d3.nest().key(function(d){
+        //     return d.year;
+        // }) .key(function(d){
+        //     return d.hometown
+        // }).entries(arr);
+        // console.log(nest);        
+    }
+
+    var data = [50, 43, 120, 87, 99, 167, 142];//数据
+    var width = 400; // SVG 绘 制 区 域 的 宽 度 
+    var height = 400; // SVG 绘 制 区 域 的 高 度       
+    var padding = { top: 20 , right: 20, bottom: 20, left: 20 };// 定 义 上 下 左 右 的 边 距
+    var rectStep = 35;//定义柱形图上一个起点到下一个起点的宽度，包括空白区域 
+    var rectWidth = 30;//定义柱形图的宽度，不包括空白
+
+    var xAxisWidth = 300;//设置x轴的宽度
+    var yAxisWidth = 300;//设置y轴的宽度
+    var xScale = d3.scaleBand().domain(d3.range(data.length)).rangeRound([0,xAxisWidth]).padding(0.2);//设置x轴序数比例尺
+    var yScale = d3.scaleLinear().domain([0,d3.max(data)]).range([0,yAxisWidth]);//设置y轴线性比例尺
+
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+        
+    var rect = svg.selectAll('.myrect').data(data).enter().append('rect').attr('fill','steelblue').attr('x',function(d,i){
+        return padding.left + xScale(i);
+    }).attr('y',function(d,i){
+        return height - padding.bottom - yScale(d);
+    }).attr('width',function(){
+        return xScale.bandwidth();
+    }).attr('height',function(d){
+        return yScale(d);
+    }).on('mouseover',function(){
+        d3.select(this).attr('fill','orange');
+    }).on('mouseout',function(){
+        d3.select(this).transition().duration(500).attr('fill','steelblue');
+    })
+
+    var text = svg.selectAll('.mytext').data(data).enter().append('text').attr('fill','white').attr('font-size','14px').attr('text-anchor','middle').attr('x',function(d,i){
+        return padding.left + xScale(i);
+    }).attr('y',function(d,i){
+        return height - padding.bottom - yScale(d);
+    }).attr('dx',xScale.bandwidth()/2).attr('dy','1em').text(function(d){
+        return d;
+    }); 
+
+    var xAxis = d3.axisBottom(xScale);//设置x轴
+    yScale.range([yAxisWidth,0]);//重新定义y轴比例范围，让y轴线性比例尺刻度从高到低排序
+    var yAxis = d3.axisLeft(yScale);//设置y轴
+    svg.append('g').attr('class','axis').attr('transform', 'translate(' + padding.left + ',' + (height - padding.bottom) + ')').call(xAxis);//绘制x轴并应用x轴序数比例尺
+    svg.append('g').attr('class','axis').attr('transform', 'translate(' + padding.left + ',' + (height - yAxisWidth - padding.bottom) + ')').call(yAxis);//绘制y轴并应用y轴线性比例尺
+
+    function draw(){
+        var updateRect = svg.selectAll('rect').data(data);
+        var enterRect = updateRect.enter();
+        var exitRect = updateRect.exit();
+
+        var updateText = svg.selectAll('text').data(data);
+        var enterText = updateText.enter();
+        var exitText = updateText.exit();
+        
+        /*矩形数据处理*/
+        updateRect.attr('fill','steelblue').attr('x',function(d,i){
+            return padding.left + rectStep*i;
+        }).attr('y',function(d,i){
+            return height - padding.bottom - d;
+        }).attr('width',rectWidth).attr('height',function(d,i){
+            return d;
+        });
+        enterRect.append('rect').attr('fill','steelblue').attr('x',function(d,i){
+            return padding.left + rectStep*i;
+        }).attr('y',function(d,i){
+            return height - padding.bottom - d;
+        }).attr('width',rectWidth).attr('height',function(d,i){
+            return d;
+        });
+        exitRect.remove();
+
+        /*文字数据处理*/
+        updateText.attr('fill','steelblue').attr('fill','white').attr('font-size','14px').attr('text-anchor','middle').attr('x',function(d,i){
+            return padding.left + rectStep*i;
+        }).attr('y',function(d,i){
+            return height - padding.bottom - d;
+        }).attr('dx',rectWidth/2).attr('dy','1em').text(function(d){
+            return d;
+        });
+        enterText.append('text').attr('fill','white').attr('font-size','14px').attr('text-anchor','middle').attr('x',function(d,i){
+            return padding.left + rectStep*i;
+        }).attr('y',function(d,i){
+            return height - padding.bottom - d;
+        }).attr('dx',rectWidth/2).attr('dy','1em').text(function(d){
+            return d;
+        });
+        exitText.remove();
+
+    }
+
+    function mysort(){
+        data.sort(d3.ascending); // 排 序 
+        draw();       
+    }
+
+    function myadd(){
+        data.push( Math.floor( Math.random() * 100) ); // 添 加 一 个 项 
+        draw();     
+    }
+
+</script>
+</html>

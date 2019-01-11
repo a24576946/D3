@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+    /*序数比例尺*/
+    var pointScales = d3.scalePoint().domain([1,2,3,4,5]).rangeRound([0,100]).padding(5);//Point Scales
+    console.log(pointScales(1));
+
+    var bandScales = d3.scaleBand().domain([1,2,3,4,5]).rangeRound([0,100]).padding(5);//Band Scales
+    console.log(bandScales(1));
+
+    var schemeCategory10 = d3.scaleOrdinal(d3.schemeCategory10);//D3提供颜色序数比例尺
+    console.log(schemeCategory10(1));
+
+    var width = 600; 
+    var height = 600; 
+    var data = [
+        {r:30,c:0},
+        {r:50,c:1},
+        {r:60,c:2},
+        {r:10,c:3},
+        {r:20,c:4},
+        {r:40,c:5},
+    ];
+    var color = d3.scaleOrdinal(d3.schemeSet3);
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+    var circle = svg.selectAll('circle').data(data).enter().append('circle').attr('cx',function(d,i){
+        return 30 + i * 80
+    }).attr('cy',100).attr('r',function(d,i){
+        return d.r;
+    }).attr('fill',function(d,i){
+        return color(i);
+    });    
+
+</script>
+</html>

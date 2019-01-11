@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+    <style>
+        html, body {
+        -webkit-user-select: none;
+        user-select: none;
+        }        
+    </style>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+
+    var width = 500;
+    var height = 500;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+
+    var arr = [
+        {
+            "data_type": "Media",
+            "count": 1
+        },
+        {
+            "data_type": "Satellite",
+            "count": 93
+        },
+        {
+            "data_type": "Service",
+            "count": 2
+        },
+        {
+            "data_type": "Document",
+            "count": 43
+        },
+        {
+            "data_type": "CalTable",
+            "count": 12
+        },
+        {
+            "data_type": "Feature",
+            "count": 6
+        },
+        {
+            "data_type": "DEM",
+            "count": 3
+        },
+        {
+            "data_type": "Ortho",
+            "count": 1
+        }
+    ];
+
+    var video = {
+        "data_type": "Media",
+        "sub_types": [
+            {
+                "sub_type": "Video",
+                "count": 1
+            },
+            {
+                "sub_type": "Video1",
+                "count": 1
+            },
+            {
+                "sub_type": "Video2",
+                "count": 1
+            },
+            {
+                "sub_type": "Video3",
+                "count": 1
+            }                                    
+        ]
+    }
+
+    var gf = {
+        "data_type": "Satellite",
+        "sub_types": [
+            {
+                "sub_type": "GF1",
+                "count": 11
+            },
+            {
+                "sub_type": "HJ1",
+                "count": 51
+            },
+            {
+                "sub_type": "GF2",
+                "count": 10
+            },
+            {
+                "sub_type": "ZY3",
+                "count": 17
+            },
+            {
+                "sub_type": "ZY02C",
+                "count": 4
+            }
+        ]
+    }
+
+    // var nodes = [//节点数据name表示节点名称 
+    //     { name: "0" }, 
+    //     { name: "1" }, 
+    //     { name: "2" }, 
+    //     { name: "3" }, 
+    //     { name: "4" }, 
+    //     { name: "5" }, 
+    //     { name: "6" }
+    // ];
+    var nodes = [];    
+    // var edges = [//连线数据，source和target分别表示连线两端的接点，并且变量名称必须是source和target 
+    //     { source : 0 , target: 1 } , 
+    //     { source : 0 , target: 2 } , 
+    //     { source : 0 , target: 3 } , 
+    //     { source : 1 , target: 4 } , 
+    //     { source : 1 , target: 5 } , 
+    //     { source : 1 , target: 6 } 
+    // ];
+    var edges = [];    
+
+    for(var i=0;i<arr.length;i++){       
+        nodes.push({
+            name:i,
+            type:arr[i].data_type,
+        });
+        initTarget(video);
+        initTarget(gf);
+        // if(video.data_type == arr[i].data_type){
+        //     video['target'] = i;
+        // }
+        // if(gf.data_type == arr[i].data_type){
+        //     gf['target'] = i;
+        // }              
+    }
+
+    for(var i=0;i<video.sub_types.length;i++){
+        edges.push({
+            source : video.target , target: arr.length + nodes.length - arr.length + i
+        });
+    }
+
+    for(var i=0;i<video.sub_types.length;i++){
+        nodes.push({
+            name:nodes.length,
+            type:video.sub_types[i].sub_type         
+        });        
+    }
+
+    for(var i=0;i<gf.sub_types.length;i++){
+        edges.push({
+            source : gf.target , target: arr.length + nodes.length - arr.length + i
+        });       
+    }
+
+    for(var i=0;i<gf.sub_types.length;i++){
+        nodes.push({
+            name:nodes.length,
+            type:gf.sub_types[i].sub_type         
+        });        
+    }
+
+    function initTarget(info){
+        if(info.data_type == arr[i].data_type){
+            info['target'] = i;
+        }        
+    }
+
+    function initData(info){
+        for(var i=0;i<info.sub_types.length;i++){
+            edges.push({
+                source : info.target , target: arr.length + i
+            });
+            nodes.push({
+                name:nodes.length,
+                type:info.sub_types[i].sub_type         
+            });        
+        }
+    }
+
+    var force = d3.forceSimulation(nodes)//转换数据为力导向图布局
+                .force('link',d3.forceLink(edges).distance(90))//设定连线距离
+                .force('charge',d3.forceManyBody())//设定使用默认的电荷数模型
+                .force('center',d3.forceCenter(width/2,height/2));//设定新的中心力模型    
+
+    force.nodes(nodes).on('tick',tiked);//设定节点数组，在每次更新节点信息时执行tiked方法
+    force.force('link').links(edges);//设定连线数组
+
+    var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var lines = svg.selectAll('.forceLine').data(edges).enter().append('line').attr('class','forceLine').attr('stroke','#333').attr('stroke-width',3);//绘制连线
+    var circles = svg.selectAll('.forceCircle').data(nodes).enter().append('circle').attr('class','forceCircle').attr('r',20).style('fill',function(d,i){//绘制圆形
+        return colors(i);
+    }).call(d3.drag().on('start',dragstarted).on('drag',draged).on('end',dragended));
+    var texts = svg.selectAll('.forceText').data(nodes).enter().append('text').attr('class','forceText').attr('x',function(d,i){//绘制文字
+        return d.x;
+    }).attr('y',function(d,i){
+        return d.y;
+    }).attr('dy','0.3em').text(function(d,i){
+        return d.type;
+    }).attr('dx','-0.3em');
+
+    function tiked(){//每次节点更新时改变连线、节点、文字的位置等信息
+        lines.attr('x1',function(d,i){
+            return d.source.x;
+        });
+        lines.attr('y1',function(d,i){
+            return d.source.y;
+        });
+        lines.attr('x2',function(d,i){
+            return d.target.x;
+        });
+        lines.attr('y2',function(d,i){
+            return d.target.y;
+        });
+
+        circles.attr('cx',function(d){
+            return d.x;
+        })
+        circles.attr('cy',function(d){
+            return d.y;
+        })
+
+        texts.attr('x',function(d){
+            return d.x;
+        })
+        texts.attr('y',function(d){
+            return d.y;
+        })
+    }
+
+    function dragstarted(d){//节点拖动开始时的设置节点固定位置信息
+        if(!d3.event.active){
+            force.alphaTarget(0.3).restart();
+        }
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function draged(d){//节点正在拖动时的设置节点固定位置信息
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    }
+
+    function dragended(d){//节点拖动结束时的设置节点固定位置信息
+        if(!d3.event.active){
+            force.alphaTarget(0);
+        }
+        d.fx = null;
+        d.fy = null;
+    }    
+
+</script>
+</html>

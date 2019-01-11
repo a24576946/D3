@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+    <style>
+        html, body {
+        -webkit-user-select: none;
+        user-select: none;
+        }        
+    </style>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+
+    var width = 500;
+    var height = 500;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+
+    var tree = d3.tree().size([width,height - 200]).separation(function(a,b){//设定树形图的布局
+        return a.parent == b.parent ? 1 : 2;
+    });
+
+    var diagonal = d3.linkHorizontal().x(function(d){//设定线条路径生成器
+        return d.y;
+    }).y(function(d){
+        return d.x;
+    });
+
+    d3.json('city.json').then(root => {//请求本地数据
+
+        var hierarchy = d3.hierarchy(root);//转换数据
+        var nodes = tree(hierarchy).descendants();//节点数据
+        var links = hierarchy.links(root);//树形路径数据
+
+        var gTree = svg.append('g').attr('transform','translate(100,0)');//绘制区域g元素   
+        var link = gTree.selectAll('.link').data(links).enter().append('path')//绘制树形路径
+                .attr('class','link')
+                .attr('d',diagonal) 
+                .attr('fill','none')
+                .attr('stroke-width',1)
+                .attr('stroke','#666');
+        var node = gTree.selectAll('.node').data(nodes).enter().append('g').attr('class','node').attr('transform',function(d){//设定节点文字g元素
+            return 'translate('+d.y+','+d.x+')';
+        });
+
+        node.append('circle').attr('r',4.5).attr('fill','orange');//绘制节点
+        node.append('text').attr('dx',function(d){//绘制文字
+            return d.children ? -8 : 8;
+        }).attr('dy',3).style('text-anchor',function(d){
+            return d.children ? 'end' : 'start';
+        }).text(function(d){
+            return d.data.name;
+        });                
+
+    })
+
+</script>
+</html>

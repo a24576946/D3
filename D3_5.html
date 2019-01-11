@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+    // var a = d3.rgb(255,0,0);
+    // var b = d3.rgb(0,255,0);
+    // var compute = d3.interpolate(a,b);
+    // console.log(compute(0.2));
+
+    var width = 400;
+    var height = 400;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+
+    // var lines = [[ 80,80],[ 200,100],[ 200,200],[ 100,200]];
+    // var linePaths = d3.line();
+
+    var lines = [80,120,160,200,240,280];
+    var linePaths = d3.line().x(function(d){//路径其中一点的x坐标
+        return d;
+    }).y(function(d,i){//路径其中一点的y坐标
+        return i%2 == 0 ? 40 : 150;
+    }).defined(function(d){//符合条件显示
+        return d < 200;
+    });
+    svg.append('path').attr('d',linePaths(lines)).attr('stroke','black').attr('stroke-width','3px').attr('fill','none');     
+
+</script>
+</html>

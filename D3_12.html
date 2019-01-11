@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+
+    var width = 500;//svg绘制区域宽度
+    var height = 500;//svg绘制区域高度
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);//新建svg绘制区域    
+    var data = [];
+    var rect = svg.append('rect')
+    .attr('fill','orange')
+    .attr('x',10)
+    .attr('y',10)
+    .attr('width',100)
+    .attr('height',30);
+
+    // var rectTran = rect.transition().attr("width", 300)
+    // .transition().attr("height", 300)
+    // .transition().attr("width", 100)
+    // .transition().attr("height", 100);
+
+    var reactTran = rect.transition().duration(2000).attrTween('width',function(d,i,a){
+        return function(t) {
+            return t * 300;
+        };
+    })
+
+    var text = svg.append('text')
+               .attr('fill','white')
+               .attr('x',100)
+               .attr('y',30)
+               .attr('dy','0em')
+               .attr('text-anchor','end')
+               .text(100);
+
+    var initx = text.attr('x');
+    var initText = text.text();
+    var textTran = text.transition()
+                   .duration(2000)
+                   .tween('text',function(d,i,a){
+                       var that = this;
+                       return function(t){
+                           d3.select(that).attr('x',t * 300)
+                                          .text(Math.floor(t * 300));
+                       }
+                   })
+
+</script>
+</html>

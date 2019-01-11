@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+    
+    var width = 500;
+    var height = 500;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);    
+    var data = { source:[ 100 , 100 ], target:[ 300 ,200 ]};
+
+    var linkVertical = d3.linkVertical();
+
+    svg.append('path')
+    .attr('d',linkVertical(data))
+    .attr('transform','translate(200,200)')
+    .attr('fill','none')
+    .attr('stroke','black')
+    .attr('strokeWidth','3px');
+</script>
+</html>

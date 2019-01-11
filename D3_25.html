@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+    <style>
+        html, body {
+        -webkit-user-select: none;
+        user-select: none;
+        }
+        .province{
+            stroke:'#ccc';
+            stroke-width:1px;
+        }
+        .centroid{
+            fill:#ccc;
+        }
+        .boundingbox{
+            fill:none;
+            stroke:#ccc;
+            stroke-width:1px;
+        }
+        .overlay{ 
+            fill: none; 
+            pointer-events: all; 
+        }                
+    </style>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+    var width = 500;
+    var height = 500;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+
+    var projection = d3.geoOrthographic().translate([width/2,height/2]);//设置球型地图投影
+    var path = d3.geoPath(projection);//设置地理路径生成器
+
+    var geoGraticule = d3.geoGraticule();//设置地理网格生成器
+    var grid = geoGraticule();//获取地理网格数据信息
+
+    var bjData = {//目标图片信息数组
+        "name": "地 点", 
+        "location": [ 
+            { "name":" 北 京", "log":"116.3", "lat":"39.9", "img":"img/bj.jpg" },
+            { "name":" 上 海", "log":"121.4", "lat":"31.2", "img":"img/bj.jpg" }
+        ]    
+    }
+
+    var mapLines = svg.append('path').datum(grid)//绘制地理网格
+    .attr('stroke','#ccc')
+    .attr('stroke-width','1px')
+    .attr('fill','none')
+    .attr('d',path)
+    .attr('marker-end','url(#arrow)')
+    .attr('marker-start','url(#startpoint)');
+
+    var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+    d3.json('china.json').then((root,error) => {
+        var groups = svg.append('g');
+
+        var map = groups.selectAll('path').data(root.features).enter().append('path').attr('class','province').style('fill',function(d,i){//绘制地图
+            return colors(i);
+        }).attr('d',path);
+
+        var initRotate = projection.rotate();
+        var initScale = projection.scale();
+
+        var location = svg.selectAll('.location').data(bjData.location).enter().append('g').attr('transform',function(d){//绘制坐标位置
+            var coor = projection([d.log,d.lat]);
+            return 'translate('+coor[0]+','+coor[1]+')';
+        });
+        location.append('circle').attr('r',5).attr('fill','#333');//以圆点表示目标坐标位置
+        location.append('image')//绘制目标图片
+        .attr('x',20)
+        .attr('y',-40)
+        .attr('width',90)
+        .attr('height',90)
+        .attr('xlink:href',function(d){
+            return d.img;
+        });
+
+        var zoom = d3.zoom().duration(200).scaleExtent([1,10]).on('zoom',function(d){//缩放拖动地图事件
+  
+            projection.rotate([//更新地图旋转角度
+                initRotate[0] + 180 * d3.event.transform.x / width,                
+                initRotate[1] + -180 * d3.event.transform.y / height,                
+                initRotate[2]                 
+            ]);
+            
+            projection.scale(initScale * d3.event.transform.k);//更新地图缩放系数
+
+            mapLines.attr('d',path);//更新绘制地图网格
+
+            map.attr('d',path);//更新绘制地图
+
+            location.attr('transform',function(d){
+                var coor = projection([d.log,d.lat]);
+                return 'translate('+coor[0]+','+coor[1]+')';
+            })
+
+        });
+
+        svg.append('rect').attr('class','overlay').attr('x',0).attr('y',0).attr('width',width).attr('height',height).call(zoom);//绘制透明层来辅助地图缩放操作
+
+    })
+    
+</script>
+</html>

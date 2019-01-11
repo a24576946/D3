@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+    <style>
+        html, body {
+        -webkit-user-select: none;
+        user-select: none;
+        }        
+    </style>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+
+    var width = 500;
+    var height = 500;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+
+    var continent = [ "亚 洲" , "欧 洲" , "非 洲" , "美 洲" , "大 洋 洲" ]; 
+    var population = [ 
+        [ 9000, 870 , 3000 , 1000 , 5200 ], 
+        [ 3400, 8000 , 2300 , 4922 , 374 ], 
+        [ 2000, 2000 , 7700 , 4881 , 1050 ], 
+        [ 3000, 8012 , 5531 , 500 , 400 ], 
+        [ 3540, 4310 , 1500 , 1900 , 300 ] 
+    ];
+
+    var chord = d3.chord().padAngle(0.3).sortSubgroups(d3.ascending);//设定弦图布局
+    var chordArr = chord(population);//弦图布局转换数据
+    var chordDataLength = chordArr.length;
+    var chordNodes = chordArr['groups'];//弦图节点数组
+    var chordData = chordArr.filter((currentValue,index) => {//弦图弦数组
+        if(index != (chordDataLength - 1)){
+            return true;
+        }
+    });
+
+    var gChord = svg.append('g').attr('transform','translate('+width/2+','+height/2+')');//添加弦图最外层的g元素
+    var gOuter = gChord.append('g');//添加弦图外层节点g元素
+    var gInner = gChord.append('g');//添加弦图内层弦g元素
+
+    var colors = d3.scaleOrdinal(d3.schemeCategory10);
+
+    var innerRadius = width/ 2 * 0.7;//外层节点弧的内半径 
+    var outerRadius = innerRadius * 1.1;//外层节点弧的外半径
+
+    var arcOuter = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius);//设定一个弧生成器
+
+    gOuter.selectAll('.outerPath').data(chordNodes).enter().append('path').attr('class','outerPath').attr('fill',function(d,i){//添加外层节点
+        return colors(i);
+    }).attr('d',function(d){
+        return arcOuter(d);
+    })    
+
+    gOuter.selectAll('.outerText').data(chordNodes).enter().append('text').each(function(d,i){//添加外层节点文字
+        d.angle = (d.startAngle + d.endAngle) / 2;
+        d.name = continent[i];
+    }).attr('class','outerText').attr('dy','0.35em').attr('d',function(d){
+        return arcOuter(d);
+    }).attr('transform',function(d){
+        var result = 'rotate('+(d.angle * 180 / Math.PI)+')';
+        result += 'translate(0,'+ -1.0 * (outerRadius + 10)+')';
+        if(d.angle > Math.PI * 3/4 && d.angle < Math.PI * 5/4){
+            result += 'rotate(180)';
+        }
+        return result;
+    }).text(function(d){
+        return d.name;
+    })
+
+    var arcInner = d3.ribbon().radius(innerRadius);//设定一个弦生成器
+
+    gInner.selectAll('.innerPath').data(chordData).enter().append('path').attr('class','innerPath').attr('d',arcInner).attr('fill',function(d,i){//添加弦图
+        return colors(i);
+    })
+
+    gOuter.selectAll('.outerPath').on('mouseover',fade(0.0)).on('mouseout',fade(1.0));//弦图交互
+
+    function fade(opacity){
+        return function(g,i){
+            gInner.selectAll('.innerPath').filter((d) => {
+                if(d.source.index != i && d.target.index != i){
+                    return true;
+                }
+            }).transition().style('opacity',opacity);
+        }        
+    }
+
+</script>
+</html>

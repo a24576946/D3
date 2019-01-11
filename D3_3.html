@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+    var width = 600; 
+    var height = 600;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+
+    var Xscale = d3.scaleLinear().domain([0,10]).range([0,300]);//定义坐标轴的线性比例尺
+
+    var axis = d3.axisBottom(Xscale).ticks(5).tickSize(3,6).tickFormat(d3.format('$0.1f'));//定义坐标轴
+
+    var gAxis = svg.append('g').attr('transform','translate(80,80)');//在svg中添加一个包含坐标轴的各元素的g元素
+
+    axis(gAxis);//在gAxis中绘制坐标轴
+    // gAxis.call(axis)  
+</script>
+</html>

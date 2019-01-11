@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+    <style>
+        html, body {
+        -webkit-user-select: none;
+        user-select: none;
+        }
+        .province{
+            stroke:'#ccc';
+            stroke-width:1px;
+        }
+        .centroid{
+            fill:#ccc;
+        }
+        .boundingbox{
+            fill:none;
+            stroke:#ccc;
+            stroke-width:1px;
+        }
+        .overlay{ 
+            fill: none; 
+            pointer-events: all; 
+        }                
+    </style>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+    var width = 1600;
+    var height = 900;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+
+    var projection = d3.geoMercator().translate([width/2,height/2]);//设置墨卡托地图投影
+    var path = d3.geoPath(projection);//设置地理路径生成器
+    
+    var colors = d3.scaleOrdinal(d3.schemeCategory10);//定义颜色
+
+    d3.json('USA.json').then((root,error) => {//请求地图json数据
+        var groups = svg.append('g');
+
+        // var map = groups.selectAll('path').data(root.features).enter().append('path').attr('class','province').style('fill',function(d,i){
+        //     return colors(i);
+        // }).attr('d',path);
+        
+        var nodes = [];
+        var edges = [];
+
+        root.features.forEach(function(d,i){//循环地图地理坐标，计算地图二维地理特征，如地理地图中心、面积等信息
+            var centroid = path.centroid(d);
+            centroid.x = centroid[0];
+            centroid.y = centroid[1];
+            centroid.features = d;
+            nodes.push(centroid);//得到地图节点数组
+        });
+
+        var voronoi = d3.voronoi().x(function(d){//设置三角多边形布局
+            return d.x;
+        }).y(function(d){
+            return d.y;
+        });
+
+        var links = voronoi.links(nodes);//以边的形式返回地图节点连线数组
+
+        var force = d3.forceSimulation(nodes)//转换数据为力导向图布局
+                    .force('link',d3.forceLink(links).distance(function(d,i){
+                        var dx = d.source.x - d.target.x;
+                        var dy = d.source.y - d.target.y;
+                        return Math.sqrt(dx*dx+dy*dy);
+                    }))//设定连线距离
+                    .force('charge',d3.forceManyBody().strength(0))//设定使用默认的电荷数模型
+                    .force('center',d3.forceCenter(width/2,height/2));//设定新的中心力模型 
+
+        var nodeGroups = svg.selectAll('.nodeG').data(nodes).enter().append('g').attr('transform',function(d,i){//绘制地图节点
+            return 'translate('+-d.x+','+-d.y+')';
+        }).call(d3.drag().on('start',dragstarted).on('drag',draged).on('end',dragended)).append('path').attr('transform',function(d,i){
+            return 'translate('+d.x+','+d.y+')';            
+        }).attr('stroke','#333').attr('stroke-width','1px').attr('fill',function(d,i){
+            return colors(i);
+        }).attr('d',function(d){
+            return path(d.features);
+        })
+
+        var lines = svg.selectAll('.lineG').data(links).enter().append('line').attr('x1',function(d,i){//绘制连线
+            return d.source.x;
+        }).attr('y1',function(d,i){
+            return d.source.y;
+        }).attr('x2',function(d,i){
+            return d.target.x;
+        }).attr('y2',function(d,i){
+            return d.target.y;
+        }).attr('stroke','#666').attr('stroke-width','1px');
+
+        force.on('tick',tiked);//设定节点数组，在每次更新节点信息时执行tiked方法
+
+        function tiked(){//每次节点更新时改变连线、节点、文字的位置等信息
+
+            lines.attr("x1", function( d) { return d.source.x; })
+            .attr("y1", function( d) { return d.source.y; })
+            .attr("x2", function( d) { return d.target.x; })
+            .attr("y2", function( d) { return d.target.y; });
+            nodeGroups.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"});
+        }
+
+        function dragstarted(d){//节点拖动开始时的设置节点固定位置信息
+            if(!d3.event.active){
+                force.alphaTarget(0.3).restart();
+            }
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function draged(d){//节点正在拖动时的设置节点固定位置信息
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragended(d){//节点拖动结束时的设置节点固定位置信息
+            if(!d3.event.active){
+                force.alphaTarget(0);
+            }
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+    })
+    
+</script>
+</html>

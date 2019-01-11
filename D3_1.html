@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+    var test = {
+        // /*线性比例尺*/
+        // var linear = d3.scaleLinear().domain([-20,20]).range([0,100]);
+        // var ticks = linear.ticks(5);
+        // var tickFormat = linear.tickFormat(10,"+");
+        // for(var i=0;i<ticks.length;i++){
+        //     ticks[i] = tickFormat(ticks[i]);
+        // }
+        // console.log(ticks);//获取定义域中具有代表性的几个值
+
+        // /*指数比例尺*/
+        // var pow = d3.scalePow().exponent(3).domain([0,3]).range([0,90]);
+        // console.log(pow(1.5));
+
+        // /*量子比例尺*/
+        // var quantize = d3.scaleQuantize().domain([0,50]).range(["#888","#666","#444","#222","#000"]);
+        // var r = [45,35,25,15,5];     
+        // var svg = d3.select('body').append('svg').attr('width',400).attr('height',400);
+        // var circle = svg.selectAll('circle').data(r).enter().append('circle').attr('cx',function(d,i){
+        //     return 50 + i * 30;
+        // }).attr('cy',50).attr('r',function(d,i){
+        //     return d;
+        // }).attr('fill',function(d){
+        //     return quantize(d);
+        // });
+
+        // /*分位比例尺*/
+        // var quantile = d3.scaleQuantile().domain([0,2,4,10]).range([0,100]);
+        // console.log(quantile.quantiles());//查询分位比例尺的分段值
+
+    };
+
+    /*阈值比例尺*/
+    var threshold = d3.scaleThreshold().domain([10,20,30]).range(['red','blue','green','yellow']);
+    console.log(threshold(15));    
+    console.log(threshold.invertExtent('blue'));//值域反求定义域值    
+
+</script>
+</html>

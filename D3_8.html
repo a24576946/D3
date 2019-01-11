@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+
+</body>
+<script charset="utf-8">
+    
+    var width = 500;
+    var height = 500;
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);    
+    var n = 30;
+    var data = [];
+    for(var i=0;i<n;i++){
+        data.push({
+            size:Math.random() * 30 + 200,
+            type:d3.symbols[Math.floor(Math.random() * d3.symbols.length)]
+        })        
+    }
+
+    var symbol = d3.symbol().size(function(d){
+        return d.size;
+    }).type(function(d){
+        return d.type;
+    })
+
+    var color = d3.scaleOrdinal(d3.schemeAccent);
+    svg.selectAll().data(data).enter().append('path').attr('d',function(d,i){
+        return symbol(d);
+    }).attr('transform',function(d,i){
+        var x = 100 + i%5 * 20;
+        var y = 100 + Math.floor(i/5) * 20;
+        return 'translate('+x+','+y+')';
+    }).attr('fill',function(d,i){
+        return color(i);
+    })
+</script>
+</html>

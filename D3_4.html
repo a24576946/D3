@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="./D3.js" charset="utf-8"></script>
+</head>
+<body>
+    <button onclick="updateData()">更新</button>
+    <button onclick="addCircle()">新增</button>
+    <button onclick="removeCircle()">删除</button>
+</body>
+<script charset="utf-8">
+
+    var width = 400;
+    var height = 400;
+    var center = [[ 0.5,0.5],[ 0.7,0.8],[ 0.4,0.9], [0.11,0.32],[ 0.88,0.25],[ 0.75,0.12], [0.5,0.1],[ 0.2,0.3],[ 0.4,0.1],[ 0.6,0.7]];
+    var xAxisWidth = 300;
+    var yAxisWidth = 300;
+    var padding = { top: 30 , right: 30, bottom: 30, left: 30 }; 
+
+    var xScale = d3.scaleLinear().domain([0,1.2*d3.max(center,function(d){
+        return d[0];
+    })]).range([0,xAxisWidth]);
+    var yScale = d3.scaleLinear().domain([0,1.2*d3.max(center,function(d){
+        return d[1];
+    })]).range([0,yAxisWidth]);
+
+    var xAxis = d3.axisBottom(xScale);
+    yScale.range([yAxisWidth,0]);
+    var yAxis = d3.axisLeft(yScale);
+
+    var svg = d3.select('body').append('svg').attr('width',width).attr('height',height);
+
+    var circle = svg.selectAll('circle').data(center).enter()
+    .append('circle')
+    .attr('cx',padding.left)
+    .attr('cy',height - padding.bottom)
+    .transition().duration(1000)
+    .attr('fill','orange')
+    .attr('cx',function(d){
+        return padding.left + xScale(d[0]);
+    })
+    .attr('cy',function(d){
+        return height - padding.bottom - yScale(d[1]);
+    })
+    .attr('r',5);
+
+    svg.append('g').attr('transform', 'translate(' + padding.left + ',' + (height - padding.bottom) + ')').call(xAxis);
+    svg.append('g').attr('transform', 'translate(' + padding.left + ',' + (height - yAxisWidth - padding.bottom) + ')').call(yAxis);
+
+    function circleDraw(){
+        var circleUpdate = svg.selectAll('circle').data(center);
+        var circleEnter = circleUpdate.enter();
+        var circleExit = circleUpdate.exit();
+
+        circleUpdate.transition().duration(1000)
+        .attr('fill','orange')
+        .attr('cx',function(d){
+            return padding.left + xScale(d[0]);
+        })
+        .attr('cy',function(d){
+            return height - padding.bottom - yScale(d[1]);
+        })
+        .attr('r',5);
+
+        circleEnter.append('circle')
+        .attr('cx',padding.left)
+        .attr('cy',height - padding.bottom)
+        .transition().duration(1000)
+        .attr('fill','orange')
+        .attr('cx',function(d){
+            return padding.left + xScale(d[0]);
+        })
+        .attr('cy',function(d){
+            return height - padding.bottom - yScale(d[1]);
+        })
+        .attr('r',5);
+
+        circleExit.transition().duration(1000).attr('fill','white').remove();
+
+    }
+
+    function updateData(){
+        for(var i=0;i<center.length;i++){
+            center[i][0] = Math.random();
+            center[i][1] = Math.random();4
+        }
+        circleDraw();        
+    }
+
+    function addCircle(){
+        center.push([Math.random(),Math.random()]);
+        circleDraw();
+    }
+
+    function removeCircle(){
+        center.pop();
+        circleDraw();        
+    }
+
+</script>
+</html>
